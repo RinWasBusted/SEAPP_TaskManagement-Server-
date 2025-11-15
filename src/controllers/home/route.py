@@ -1,6 +1,7 @@
 from flask import Blueprint 
 from flask_sqlalchemy import SQLAlchemy
-from src.schemas.Models import User , Blog 
+from src.schemas.Models import Blog
+from src.schemas.Models1 import User
 from flask_sqlalchemy import session # Dung cai nay de thao tac voi ORM 
 
 def configure_home_bp(app , db : SQLAlchemy): 

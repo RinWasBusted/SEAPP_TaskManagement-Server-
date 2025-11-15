@@ -5,4 +5,4 @@ app = create_app()
 dev = DevConfig() 
 if __name__ == '__main__': 
     print('Server khoi dong thanh cong') 
-    app.run(port=dev.PORT , debug=dev.DEBUG) 
+    app.run(port=6869 , debug=dev.DEBUG) 
