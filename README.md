@@ -1,157 +1,92 @@
-# 📌 TỔNG QUAN VỀ DỰ ÁN --- SEAPP Task Management Server
+# TỔNG QUAN VỀ DỰ ÁN --- SEAPP Task Management Server
 
-## 1. 🚀 Hướng dẫn chạy dự án
+## 1. Hướng dẫn chạy dự án
 
 ### **B1. Clone dự án & tạo môi trường ảo**
 
-``` bash
-python -m env env/
-```
+`python -m env env/`
 
 ### **B2. Kích hoạt môi trường ảo**
 
--   **Linux/MacOS:**\
-
-``` bash
-source venv/bin/activate
-```
-
--   **Windows:**\
-
-``` bash
-venv/Script/activate
-```
+-   Linux/MacOS: `source venv/bin/activate`\
+-   Windows: `venv/Script/activate`
 
 ### **B3. Cài đặt thư viện**
 
-``` bash
-pip install -r requirements.txt
-```
+`pip install -r requirements.txt`
 
 ### **B4. Chạy dự án**
 
-``` bash
-python main.py
-```
+`python main.py`
 
 ### **B5. Lưu lại thư viện đã cài**
 
-``` bash
-pip freeze > requirements.txt
-```
+`pip freeze > requirements.txt`
 
 ------------------------------------------------------------------------
 
 ## 2. 🧩 Tổng quan cấu trúc dự án
 
-    project/
-    │── main.py              # File chạy chính
-    │── .env                 # Biến môi trường
-    │── template.py          # Script tạo cấu trúc folder
-    │── template.sh          # Script tạo cấu trúc folder
-    │
-    └── src/
-        │── __init__.py      # Khởi tạo Flask app + config
-        │── api.py           # Đăng ký các blueprint
-        │
-        ├── config/          # File cấu hình
-        ├── controllers/     # Khai báo API (Blueprints)
-        ├── models/          # Tương tác DB
-        ├── middlewares/     # Middleware xử lý request
-        └── services/        # Logic nghiệp vụ
+-   **main.py** -- File chính chạy app\
+-   **src** -- Chứa toàn bộ mã nguồn
+    -   **config** -- File cấu hình\
+    -   **controllers** -- Các route API\
+    -   **models** -- Làm việc với database\
+    -   **middlewares** -- Xử lý request trung gian\
+    -   **services** -- Logic xử lý\
+    -   **api.py** -- Đăng ký Blueprint\
+    -   **\_\_init\_\_.py** -- Tạo Flask app
+-   **.env** -- Biến môi trường\
+-   **template.py / template.sh** -- Script tạo cấu trúc thư mục
 
 ------------------------------------------------------------------------
 
-## 3. 🗄️ Khởi động & thiết lập Database
+## 4. 🗄️ Khởi động database
 
-### **Cấu hình trong file `.env`**
+Trong file `.env`, chỉnh lại:
 
--   Sửa username\
--   Sửa password\
--   Sửa tên database\
--   Sửa địa chỉ kết nối nếu cần
+-   đường dẫn DB\
+-   username\
+-   password\
+-   tên database
 
-### **Khai báo models**
+Khai báo các model trong file **Models.py** của thư mục **schema**.
 
-Viết các class ORM trong:
+### **Các lệnh migration**
 
-    src/schemas/Models.py
+    flask -A main.py db init
+    flask -A main.py db migrate
+    flask -A main.py db upgrade
 
-### **Chạy migrations**
+Sau khi chạy, nếu hiện **Done** → mở MariaDB kiểm tra các bảng.
 
-``` bash
-flask -A main.py db init
-flask -A main.py db migrate
-flask -A main.py db upgrade
-```
+Nếu lỗi → xoá thư mục `migrations/` và chạy lại từ đầu.
 
-🔹 `db init` → chạy **1 lần duy nhất**\
-🔹 `db migrate` → chạy khi thay đổi Models\
-🔹 `db upgrade` → cập nhật DB thật
-
-Nếu lỗi hoặc không update → xóa folder `migrations/` và làm lại.
-
-Sau khi ORM đã setup xong:\
-➡️ Bạn chỉ cần chạy code, SQLAlchemy sẽ tự động map dữ liệu, không cần
-chạy lại `db upgrade` mỗi lần.
+Sau khi ORM thiết lập xong → chỉ cần chạy code, **không cần chạy lại
+`db upgrade`**.
 
 ------------------------------------------------------------------------
 
-## 4. 📚 Lưu ý quan trọng --- Import Modules
+## 5. 📚 Ghi chú dự án
 
-### **Import trong package**
+### **5.1. Vấn đề import file**
 
-Nếu đang import file trong **cùng một package**, phải có dấu `.`
+Nếu import module trong **cùng package**, phải thêm dấu `.`:
 
-**Ví dụ (đúng):**
+-   **Đúng**:\
+    `from .api import configure_api_bp`
 
-``` python
-from .api import configure_api_bp
-```
+-   **Sai**:\
+    `from api import configure_api_bp`
 
-**Sai:**
+Nếu import từ **ngoài package**, dùng tuyệt đối:
 
-``` python
-from api import configure_api_bp
-```
+    from src.schemas.Models import User, Blog
 
-### **Import tuyệt đối**
+Tránh kiểu:
 
-Khi import từ thư mục gốc `src/`:
+    from ....src.schemas.Models import User , Blog
 
-**Ví dụ:**
-
-``` python
-from src.schemas.Models import User, Blog
-```
-
-Không dùng relative import kiểu:
-
-``` python
-from ....src.schemas.Models import User
-```
-
-→ Vì sẽ gây lỗi *"attempted relative import beyond top-level package"*
+→ lỗi *attempted relative import beyond top-level package*.
 
 ------------------------------------------------------------------------
-
-## 5. 📝 Ghi chú thêm
-
--   Đảm bảo mọi thư mục đều có `__init__.py`
--   Dùng import tuyệt đối khi làm việc với Flask + cấu trúc module
--   Luôn đặt project root và chạy bằng:
-
-``` bash
-python main.py
-```
-
-hoặc
-
-``` bash
-python -m src.main
-```
-
-------------------------------------------------------------------------
-
-✨ **Tài liệu này dành cho Dev khởi động dự án nhanh, rõ ràng và
-modern.**
