@@ -11,7 +11,8 @@ B3. Cài đặt các gói cần thiết:
 `pip install -r requirements.txt`
 
 B4. Chạy dự án 
-`python main.py`
+- Chạy database: `docker compose up -d` (Đã cài docker)
+- Chạy server: `python main.py`
 
 B5. Sau khi code và chỉnh sử dự án, nhớ lưu lại các gói đã cài thêm vào file requirements.txt 
 `pip freeze > requirements.txt`
