@@ -14,6 +14,7 @@ class TaskModel(db.Model):
     
     # Khóa ngoại TeamID
     team_id = db.Column(db.Integer, db.ForeignKey('teams.team_id'), nullable=False)
-    
+    # Relationship với Team
+    team = db.relationship('TeamModel', backref=db.backref('tasks', lazy=True))
     # Mối quan hệ: Được Assign cho User (nhiều-nhiều) 
     # (đã được định nghĩa trong UserModel qua backref 'assignees')

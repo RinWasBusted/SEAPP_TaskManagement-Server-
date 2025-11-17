@@ -1,5 +1,5 @@
 from . import db
-from .associations import team_member_association, assignment_association
+from .association import team_member_association, assignment_association
 
 class UserModel(db.Model):
     __tablename__ = 'users'

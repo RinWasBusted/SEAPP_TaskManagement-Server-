@@ -19,3 +19,6 @@ class TeamModel(db.Model):
     
     # Mối quan hệ: Chứa các InviteCode (1-nhiều)
     invite_codes = db.relationship('InviteCodeModel', backref='team', lazy=True)
+    # Relationship với leader và vice leader
+    leader = db.relationship('UserModel', foreign_keys=[leader_id], backref='led_teams')
+    vice_leader = db.relationship('UserModel', foreign_keys=[vice_leader_id], backref='vice_led_teams')
