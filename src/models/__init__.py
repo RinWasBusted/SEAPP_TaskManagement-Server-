@@ -23,5 +23,13 @@ def db_config(app : Flask):
 
     # 3. Liên kết db với app
     db.init_app(app) 
+
+    # Import models 
+    from .association import team_member_association, assignment_association
+    from .invite_code_model import InviteCodeModel
+    from .task_model import TaskModel
+    from .team_model import TeamModel
+    from .user_model import UserModel
+
     
 

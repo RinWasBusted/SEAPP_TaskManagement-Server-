@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 from .models import db, db_config
 from flask_migrate import Migrate
 
-migrate = Migrate()
 
 def create_app(config_object=DevConfig):
     # Tải biến môi trường ngay khi hàm được gọi
@@ -16,8 +15,8 @@ def create_app(config_object=DevConfig):
     db_config(app)
     app.config.from_object(config_object)
 
-    with app.app_context():
-        db.create_all()
+    migrate = Migrate(app, db)
+    migrate.init_app(app, db)
 
     # 4. Đăng ký Blueprints/API ở đây
     from .api import api_bp
