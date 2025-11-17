@@ -11,7 +11,8 @@ B3. Cài đặt các gói cần thiết:
 `pip install -r requirements.txt`
 
 B4. Chạy dự án 
-`python main.py`
+- Chạy database: `docker compose up -d` (Đã cài docker)
+- Chạy server: `python main.py`
 
 B5. Sau khi code và chỉnh sử dự án, nhớ lưu lại các gói đã cài thêm vào file requirements.txt 
 `pip freeze > requirements.txt`
@@ -29,3 +30,16 @@ B5. Sau khi code và chỉnh sử dự án, nhớ lưu lại các gói đã cài
 - .env: Biến môi trường 
 - template.py: Tạo folder structure
 - template.sh: Tạo folder structure # SEAPP_TaskManagement-Server-
+
+
+## 3. Chú ý khi phát triển
+
+### 1. Cập nhật cấu trúc bảng trong database
+
+Khi thay đổi cấu trúc các models của database thì cần lưu các thay đổi vào folder migrations và cập nhật lên database
+
+```
+flask -A main.py db init	Tạo hệ thống migration (làm 1 lần)
+flask -A main.py db migrate	Tạo file migration khi model thay đổi (Các lần sau có chạy lại cũng không bị mất dữ liệu)
+flask -A main.py db upgrade: Cập nhật dữ liệu xuống database theo file migration 
+```
