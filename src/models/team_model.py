@@ -1,6 +1,6 @@
 from . import db
 
-class TeamModel(db.Model):
+class Team(db.Model):
     __tablename__ = 'teams'
     
     # Các cột
@@ -15,10 +15,11 @@ class TeamModel(db.Model):
     vice_leader_id = db.Column(db.Integer, db.ForeignKey('users.user_id'), nullable=True)
     
     # Mối quan hệ: Chứa các Task (1-nhiều)
-    tasks = db.relationship('TaskModel', backref='team', lazy=True)
+    tasks = db.relationship('Task', backref='team', lazy=True)
     
     # Mối quan hệ: Chứa các InviteCode (1-nhiều)
-    invite_codes = db.relationship('InviteCodeModel', backref='team', lazy=True)
+    invite_codes = db.relationship('InviteCode', backref='team', lazy=True)
+    
     # Relationship với leader và vice leader
-    leader = db.relationship('UserModel', foreign_keys=[leader_id], backref='led_teams')
-    vice_leader = db.relationship('UserModel', foreign_keys=[vice_leader_id], backref='vice_led_teams')
+    leader = db.relationship('User', foreign_keys=[leader_id], backref='led_teams')
+    vice_leader = db.relationship('User', foreign_keys=[vice_leader_id], backref='vice_led_teams')

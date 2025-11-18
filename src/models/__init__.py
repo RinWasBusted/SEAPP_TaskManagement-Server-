@@ -22,14 +22,14 @@ def db_config(app : Flask):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # 3. Liên kết db với app
-    db.init_app(app) 
+    db.init_app(app)
 
     # Import models 
     from .association import team_member_association, assignment_association
-    from .invite_code_model import InviteCodeModel
-    from .task_model import TaskModel
-    from .team_model import TeamModel
-    from .user_model import UserModel
+    from .invite_code_model import InviteCode
+    from .task_model import Task
+    from .team_model import Team
+    from .user_model import User
 
     
 

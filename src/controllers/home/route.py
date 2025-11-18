@@ -10,4 +10,4 @@ class Home(Resource):
     def get(self):
         return 'Xin chao, day la noi dung dau tien'
 
-home_api.add_resource(resource=Home, url='/')
+home_api.add_resource(Home,'/')
