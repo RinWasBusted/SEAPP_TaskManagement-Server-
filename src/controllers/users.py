@@ -7,8 +7,9 @@ users_bp = Blueprint('users', __name__)
 users_api = Api(users_bp)
 
 class Users(Resource):
-    def get(self):
-        user = getUserFromId(1)
+    def get(self, data):
+        user = getUserFromId(data['userId'])
         return user
+
 
 users_api.add_resource(Users, '/')

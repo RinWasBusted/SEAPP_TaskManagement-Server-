@@ -10,7 +10,6 @@ class User(db.Model):
     name = db.Column(db.String(100), nullable=False)
     avatar_url = db.Column(db.String(255), nullable=True)
     password = db.Column(db.String(255), nullable=False)
-    
 
     def to_dict(self):
         return {
