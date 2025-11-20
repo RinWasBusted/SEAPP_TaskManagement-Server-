@@ -18,3 +18,6 @@ class User(db.Model):
             "name": self.name,
             "avatar_url": self.avatar_url,
         }
+    
+    def get_password(self):
+        return self.password
