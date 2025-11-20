@@ -27,7 +27,7 @@ class Register(Resource):
         new_user = createUser(name, email, password)
 
         if(new_user):
-            access_token = create_access_token(identity=new_user['email'])
+            access_token = create_access_token(identity=new_user['id'])
             
             return {
                 "status": "success",
@@ -57,7 +57,7 @@ class Login(Resource):
 
         user = checkUser(email, password)
         if(user):
-            access_token = create_access_token(identity=user['email'])
+            access_token = create_access_token(identity=user['id'])
             
             return {
                 "status": "success",
