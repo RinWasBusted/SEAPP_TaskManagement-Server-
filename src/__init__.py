@@ -1,11 +1,13 @@
 from flask import Flask 
 from .config.dev_config import DevConfig
+from .config.cloudinary_config import cloudinary_config
 from dotenv import load_dotenv 
 from .models import db, db_config
 from flask_migrate import Migrate
 import os
 from datetime import timedelta
 from flask_jwt_extended import JWTManager
+
 
 
 def create_app(config_object=DevConfig):
@@ -24,6 +26,8 @@ def create_app(config_object=DevConfig):
     migrate.init_app(app, db)
 
     jwt = JWTManager(app)
+
+    cloudinary_config()
 
     # 4. Đăng ký Blueprints/API ở đây
     from .api import api_bp

@@ -19,7 +19,7 @@ class Register(Resource):
 
         if(getUserByEmail(email)):
             return {
-                "status": "error",
+                "success": "error",
                 "message": "Registration failed. The email provided is already in use.",
                 "data": None
             }, 409
@@ -27,10 +27,10 @@ class Register(Resource):
         new_user = createUser(name, email, password)
 
         if(new_user):
-            access_token = create_access_token(identity=new_user['id'])
+            access_token = create_access_token(identity=str(new_user['id']))
             
             return {
-                "status": "success",
+                "success": True,
                 "message" : "User register successfully.",
                 "data": {
                     "user": new_user
@@ -44,7 +44,7 @@ class Register(Resource):
             }, 201
         else:
             return {
-                "status": "error",
+                "success": False,
                 "message": "Unknown error."
             }, 400
             
@@ -55,12 +55,12 @@ class Login(Resource):
         email = login_args['email']
         password = login_args['password']
 
-        user = checkUser(email, password)
+        user = checkUser(email = email, password = password)
         if(user):
-            access_token = create_access_token(identity=user['id'])
+            access_token = create_access_token(identity=str(user['id']))
             
             return {
-                "status": "success",
+                "success": True,
                 "message" : "Login successful.",
                 "data": {
                     "user": user
@@ -73,7 +73,7 @@ class Login(Resource):
             }, 200
         
         return {
-            "status": "error",
+            "success": False,
             "message": "Invalid credentials provided.",
             "data": None
         }, 401

@@ -1,7 +1,9 @@
 alembic==1.17.2
 aniso8601==10.0.1
 blinker==1.9.0
+certifi==2025.11.12
 click==8.3.0
+cloudinary==1.44.1
 dotenv==0.9.9
 Flask==3.1.2
 Flask-JWT-Extended==4.7.1
@@ -21,4 +23,5 @@ pytz==2025.2
 six==1.17.0
 SQLAlchemy==2.0.44
 typing_extensions==4.15.0
+urllib3==2.5.0
 Werkzeug==3.1.3
