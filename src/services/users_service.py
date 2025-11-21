@@ -1,6 +1,6 @@
 from ..models import db
 from ..models.user_model import User
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 def createUser(name:str, email:str, password:str):
     new_user = User(name=name, email=email, password=password )
@@ -101,3 +101,22 @@ def changeName(id, new_name):
         "success": False,
         "message": "User not found."
     }
+
+def resetPassword(id, old_password, new_password):
+    if(checkUser(id=id, password=old_password)):
+        user = User.query.get(id)
+        user.password = generate_password_hash(new_password)
+        db.session.commit()
+        return {
+            "success": True,
+            "message": "Your password has been updated successfully.",
+            "data": {
+                "user": user.to_dict()
+            }            
+        }
+    
+    return {
+        "success": False,
+        "message": "Wrong password."
+    }
+        
