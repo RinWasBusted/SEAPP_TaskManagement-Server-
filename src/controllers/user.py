@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask_restful import Api, Resource
-from ..services.users_service import getUserById, updateUserById, changeEmail
+from ..services.users_service import getUserById, updateUserById, changeEmail, changeName
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from .parsers import update_user_parser, change_email_parser, change_name_parser, reset_password_parser, upload_avatar_parser
 import cloudinary
@@ -86,13 +86,18 @@ class ChangeEmail(Resource):
         
         return result
 
-# class ChangeName(Resource):
-#     @jwt_required
-#     def post(self):
-#         id = int(get_jwt_identity())
+class ChangeName(Resource):
+    @jwt_required()
+    def patch(self):
+        id = int(get_jwt_identity())
         
-#         args = change_name_parser.parse_args()
-#         new_name = args['new_name']
+        args = change_name_parser.parse_args()
+        new_name = args['new_name']
+
+        result = changeName(id=id, new_name=new_name)
+        
+        return result
+
 
 
 
@@ -103,3 +108,4 @@ class ChangeEmail(Resource):
 
 user_api.add_resource(User, '/')
 user_api.add_resource(ChangeEmail, '/change-email')
+user_api.add_resource(ChangeName, '/change-name')

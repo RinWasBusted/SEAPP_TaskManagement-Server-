@@ -73,7 +73,7 @@ def changeEmail(id, new_email, password):
         db.session.commit()
         return {
             "success": True,
-            "message": "",
+            "message": "Your email address has been successfully changed.",
             "data": {
                 "user": user.to_dict()
             }            
@@ -82,4 +82,22 @@ def changeEmail(id, new_email, password):
     return {
         "success": False,
         "message": "Wrong password."
+    }
+
+def changeName(id, new_name):
+    user = User.query.get(id)
+    if(user):
+        user.name = new_name
+        db.session.commit()
+        return {
+            "success": True,
+            "message": "Your name has been successfully changed.",
+            "data": {
+                "user": user.to_dict()
+            }            
+        }
+    
+    return {
+        "success": False,
+        "message": "User not found."
     }
