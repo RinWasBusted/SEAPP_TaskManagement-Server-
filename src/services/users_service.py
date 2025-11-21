@@ -1,6 +1,8 @@
 from ..models import db
 from ..models.user_model import User
 from werkzeug.security import check_password_hash, generate_password_hash
+import cloudinary.uploader
+
 
 def createUser(name:str, email:str, password:str):
     new_user = User(name=name, email=email, password=password )
@@ -10,7 +12,7 @@ def createUser(name:str, email:str, password:str):
 
 def getUserById(userId : int):
     user = db.session.get(User, userId)
-    return user.to_dict()
+    return user.to_dict()    
 
 def getUserByEmail(email:str):
     user = db.session.execute(
@@ -119,4 +121,30 @@ def resetPassword(id, old_password, new_password):
         "success": False,
         "message": "Wrong password."
     }
+
+def uploadAvatar(id, avatar):
+    try:
+        user = User.query.get(id)
+        if(user.avatar_url):
+            cloudinary.uploader.destroy(user.avatar_url)
+        upload_resutl = cloudinary.uploader.upload(avatar)
+        user.avatar_url = upload_resutl['public_id']
+        db.session.commit()
+        user_data = user.to_dict()
+        user_data['avatar_url'] = upload_resutl['secure_url']
+        return {
+            "success": True,
+                "message": "Your avatar has been updated successfully.",
+                "data": {
+                    "user": user_data
+                }
+        }
+    except Exception as e:
+        return {
+        "success": False,
+        "message": "Failed to upload your avatar.",
+        "error": f"{e}"
+    }
+
+
         

@@ -1,4 +1,5 @@
 from flask_restful import reqparse
+from werkzeug.datastructures import FileStorage
 
 # REGISTER PARSER
 register_parser = reqparse.RequestParser()
@@ -37,4 +38,4 @@ reset_password_parser.add_argument('new_password', type=str, required=True, help
 
 #UPLOAD_AVATAR
 upload_avatar_parser = reqparse.RequestParser()
-upload_avatar_parser.add_argument('avatar', type=list, location='files')
+upload_avatar_parser.add_argument('avatar', type=FileStorage, location='files', required=True, help="You must upload an image")
