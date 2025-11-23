@@ -76,7 +76,7 @@ class UploadAvatar(Resource):
         args = upload_avatar_parser.parse_args()
         avatar = args['avatar']
 
-        result = uploadAvatar(id=id, avatar=avatar)
+        result = uploadAvatar(id=id, file=avatar)
 
         return result
 

@@ -122,29 +122,48 @@ def resetPassword(id, old_password, new_password):
         "message": "Wrong password."
     }
 
-def uploadAvatar(id, avatar):
+def uploadAvatar(id, file='', url=''):
     try:
-        user = User.query.get(id)
-        if(user.avatar_url):
-            cloudinary.uploader.destroy(user.avatar_url)
-        upload_resutl = cloudinary.uploader.upload(avatar)
-        user.avatar_url = upload_resutl['public_id']
-        db.session.commit()
-        user_data = user.to_dict()
-        user_data['avatar_url'] = upload_resutl['secure_url']
-        return {
-            "success": True,
-                "message": "Your avatar has been updated successfully.",
-                "data": {
-                    "user": user_data
-                }
-        }
+        if(file):
+            user = User.query.get(id)
+            if(user.avatar_url):
+                cloudinary.uploader.destroy(user.avatar_url)
+            upload_resutl = cloudinary.uploader.upload(file)
+            user.avatar_url = upload_resutl['public_id']
+            db.session.commit()
+            user_data = user.to_dict()
+            user_data['avatar_url'] = upload_resutl['secure_url']
+            return {
+                "success": True,
+                    "message": "Your avatar has been updated successfully.",
+                    "data": {
+                        "user": user_data
+                    }
+            }
+        if(url):
+            user = User.query.get(id)
+            if(user.avatar_url):
+                cloudinary.uploader.destroy(user.avatar_url)
+            upload_resutl = cloudinary.uploader.upload(url)
+            user.avatar_url = upload_resutl['public_id']
+            db.session.commit()
+            user_data = user.to_dict()
+            user_data['avatar_url'] = upload_resutl['secure_url']
+            return {
+                "success": True,
+                    "message": "Your avatar has been updated successfully.",
+                    "data": {
+                        "user": user_data
+                    }
+            }
     except Exception as e:
         return {
         "success": False,
         "message": "Failed to upload your avatar.",
         "error": f"{e}"
     }
+
+
 
 
         

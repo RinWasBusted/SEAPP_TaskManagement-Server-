@@ -7,6 +7,7 @@ from flask_migrate import Migrate
 import os
 from datetime import timedelta
 from flask_jwt_extended import JWTManager
+from authlib.integrations.flask_client import OAuth
 
 
 
@@ -28,6 +29,15 @@ def create_app(config_object=DevConfig):
     jwt = JWTManager(app)
 
     cloudinary_config()
+
+    oauth = OAuth(app)
+    google = oauth.register(
+        name = 'google',
+        client_id = os.getenv('OAUTH_CLIENT_ID'),
+        client_secret = os.getenv('OAUTH_CLIENT_SECRECT'),
+        server_metadata_uri = 'https://accounts.google.com/.well-known/openid-configuration',
+        client_kwargs = {'scope':'openid profile email'} 
+    ) 
 
     # 4. Đăng ký Blueprints/API ở đây
     from .api import api_bp
