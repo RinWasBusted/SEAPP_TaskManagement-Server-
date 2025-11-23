@@ -1,5 +1,6 @@
 from . import db
 from .association import team_member_association, assignment_association
+from src.utils import getImageUrl
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -16,7 +17,7 @@ class User(db.Model):
             "id": self.id,
             "email": self.email,
             "name": self.name,
-            "avatar_url": self.avatar_url,
+            "avatar_url": getImageUrl(self.avatar_url),
         }
     
     def get_password(self):

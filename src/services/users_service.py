@@ -1,6 +1,8 @@
 from ..models import db
 from ..models.user_model import User
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
+import cloudinary.uploader
+
 
 def createUser(name:str, email:str, password:str):
     new_user = User(name=name, email=email, password=password )
@@ -10,7 +12,7 @@ def createUser(name:str, email:str, password:str):
 
 def getUserById(userId : int):
     user = db.session.get(User, userId)
-    return user.to_dict()
+    return user.to_dict()    
 
 def getUserByEmail(email:str):
     user = db.session.execute(
@@ -21,16 +23,147 @@ def getUserByEmail(email:str):
         return user.to_dict()
     return None
 
-def checkUser(email:str, password:str):
-    user = db.session.execute(
-        db.select(User).filter_by(email = email)
-    ).scalar_one_or_none()
-    
-    if(not user):
-        return None
-    
-    if(check_password_hash(user.get_password(), password)):
-        return user.to_dict()
-    
+def checkUser(id:int = -1, email:str = "", password:str = ""):
+    if(email != ""):
+        user = db.session.execute(
+            db.select(User).filter_by(email = email)
+        ).scalar_one_or_none()
+        
+        if(not user):
+            return None
+        
+        if(check_password_hash(user.get_password(), password)):
+            return user.to_dict()
+    elif(id >= 0):
+        user = User.query.get(id)
+        if(not user):
+            return None
+        
+        if(check_password_hash(user.get_password(), password)):
+            return user.to_dict()
     return None
 
+
+def updateUserById(id, name, email, password, avatar_url):
+    user = User.query.get(id)
+
+    if( user is None): return None
+
+    user.name = name
+    user.email = email
+    user.password = password
+    user.avatar_url = avatar_url
+
+    db.session.commit() 
+    
+    return {
+        "id": id,
+        "name": name,
+        "password": password,
+        "avatar_url": avatar_url
+    }
+
+def changeEmail(id, new_email, password):
+    if(getUserByEmail(new_email)): return {
+        "success": False,
+        "message": "New email are already exists."
+    }
+
+    if(checkUser(id = id, password=password)):
+        user = User.query.get(id)
+        user.email = new_email
+        db.session.commit()
+        return {
+            "success": True,
+            "message": "Your email address has been successfully changed.",
+            "data": {
+                "user": user.to_dict()
+            }            
+        }
+    
+    return {
+        "success": False,
+        "message": "Wrong password."
+    }
+
+def changeName(id, new_name):
+    user = User.query.get(id)
+    if(user):
+        user.name = new_name
+        db.session.commit()
+        return {
+            "success": True,
+            "message": "Your name has been successfully changed.",
+            "data": {
+                "user": user.to_dict()
+            }            
+        }
+    
+    return {
+        "success": False,
+        "message": "User not found."
+    }
+
+def resetPassword(id, old_password, new_password):
+    if(checkUser(id=id, password=old_password)):
+        user = User.query.get(id)
+        user.password = generate_password_hash(new_password)
+        db.session.commit()
+        return {
+            "success": True,
+            "message": "Your password has been updated successfully.",
+            "data": {
+                "user": user.to_dict()
+            }            
+        }
+    
+    return {
+        "success": False,
+        "message": "Wrong password."
+    }
+
+def uploadAvatar(id, file='', url=''):
+    try:
+        if(file):
+            user = User.query.get(id)
+            if(user.avatar_url):
+                cloudinary.uploader.destroy(user.avatar_url)
+            upload_resutl = cloudinary.uploader.upload(file)
+            user.avatar_url = upload_resutl['public_id']
+            db.session.commit()
+            user_data = user.to_dict()
+            user_data['avatar_url'] = upload_resutl['secure_url']
+            return {
+                "success": True,
+                    "message": "Your avatar has been updated successfully.",
+                    "data": {
+                        "user": user_data
+                    }
+            }
+        if(url):
+            user = User.query.get(id)
+            if(user.avatar_url):
+                cloudinary.uploader.destroy(user.avatar_url)
+            upload_resutl = cloudinary.uploader.upload(url)
+            user.avatar_url = upload_resutl['public_id']
+            db.session.commit()
+            user_data = user.to_dict()
+            user_data['avatar_url'] = upload_resutl['secure_url']
+            return {
+                "success": True,
+                    "message": "Your avatar has been updated successfully.",
+                    "data": {
+                        "user": user_data
+                    }
+            }
+    except Exception as e:
+        return {
+        "success": False,
+        "message": "Failed to upload your avatar.",
+        "error": f"{e}"
+    }
+
+
+
+
+        
