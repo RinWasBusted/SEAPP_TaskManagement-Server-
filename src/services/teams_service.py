@@ -129,7 +129,7 @@ def uploadTeamImage(team , file = '' , type = 'icon'):
             team.banner_url = upload_result['public_id']
             return upload_result['secure_url']
 #Lay thong tin cua team theo id 
-def getTeamByID(id): 
+def getTeamByID(id , userID): 
     Leader = aliased(User) 
     ViceLeader = aliased(User) 
     
@@ -144,11 +144,15 @@ def getTeamByID(id):
             "success": False, 
             "message": "Team not found"
         } , 401 
+    role = 'member' 
     leader = exists[5].to_dict() 
+    if userID == leader.get('id'): 
+        role = 'leader'
     vice_leader = None 
     if exists[6]: 
         vice_leader = exists[6].to_dict() 
-        
+        if userID == vice_leader.get('id'): role = 'vice_leader'
+    print(role) 
     team = {
         "id": exists[0], 
         "name": exists[1], 
@@ -173,7 +177,8 @@ def getTeamByID(id):
         "teamData": team, 
         "leader": leader, 
         "viceLeader": vice_leader, 
-        "members": users 
+        "members": users, 
+        "role": role 
     } , 200 
     
     return response_data 

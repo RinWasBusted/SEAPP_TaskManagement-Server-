@@ -42,17 +42,17 @@ class Teams(Resource):
         chk = isUserMember(userID , id)
         if not chk:
             return {
-                "success": False,
-                "message": "User is not a member of this team"
-            } , 400
-        response_data = getTeamByID(id) # Lat nua code tiep tai day
-        return response_data , 200
-
-    # 2. Tao team moi
-    @jwt_required()
-    def post(self):   # Da check
-        current_user_id = int(get_jwt_identity())
-        if not(current_user_id):
+                "success": False, 
+                "message": "User is not a member of this team" 
+            } , 400 
+        response_data = getTeamByID(id , userID) # Lat nua code tiep tai day 
+        return response_data
+        
+    # 2. Tao team moi 
+    @jwt_required() 
+    def post(self):   # Da check 
+        current_user_id = int(get_jwt_identity()) 
+        if not(current_user_id): 
             return {
                 "success": False,
                 "message": "Can't read information from token"
@@ -138,17 +138,17 @@ class Teams(Resource):
             return response_data
         else:
             return {
-                "success": False,
-                "message": "You don't have any permission to do this action"
-            } , 403
-
-    @jwt_required()
-    def delete(self , id):
-        current_user_id = int(get_jwt_identity())
-        information = db.session.query(Team.leader_id).filter(id == Team.id).first()
-
-        # Khong tim thay team
-        if not information:
+                "success": False, 
+                "message": "You don't have any permission to do this action" 
+            } , 403 
+    # Endpoint dung de xoa team 
+    @jwt_required() 
+    def delete(self , id): 
+        current_user_id = int(get_jwt_identity()) 
+        information = db.session.query(Team.leader_id).filter(id == Team.id).first() 
+        
+        # Khong tim thay team 
+        if not information: 
             return {
                 "success": False,
                 "message": "Team not found to delete"
