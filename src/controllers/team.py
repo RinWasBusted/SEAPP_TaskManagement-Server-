@@ -13,8 +13,7 @@ from ..utils import getImageUrl
 from ..services.teams_service import uploadTeamImage, isUserMember, addMemberToTeam
 
 from .parsers import create_new_team_parser, update_team_parser  , user_leave_parser , leader_kick_parser, user_role_parser
-from ..services.teams_service import update_team, delete_team, isUser, isLeader , isViceLeader ,  deleteUserFromGroup
-
+from ..services.teams_service import update_team, delete_team, isUser, isLeader , isViceLeader ,  deleteUserFromGroup, getParticipatedTeams
 
 # Phai import theo kieu relative path ntn, bo dau . o dau di thi se thanh absolute path
 
@@ -247,20 +246,8 @@ class UserWithTeam(Resource):
             return {
                 "success": False,
                 "message": "User not found"
-            } , 401
-        teams = db.session.query(Team.id , Team.name , Team.banner_url , Team.icon_url , Team.description , Team.leader_id , Team.vice_leader_id).join(team_member_association , team_member_association.c.team_id == Team.id).filter(current_user_id == team_member_association.c.user_id).all()
-        teams = [
-            {
-                "id": teamID,
-                "name": name,
-                "banner": getImageUrl(banner),
-                "icon": getImageUrl(icon),
-                "leader_id": leader,
-                "vice_leader_id": vice_leader,
-                "description": description
-            }
-            for teamID, name, banner , icon, description , leader , vice_leader  in teams
-        ]
+            } , 401 
+        teams = getParticipatedTeams(user_id=current_user_id)
         return {
             "success": True,
             "message": "This is all teams you joined",

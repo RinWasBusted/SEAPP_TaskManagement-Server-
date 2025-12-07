@@ -7,6 +7,7 @@ from .jwt_service import decode_google_token
 import cloudinary.uploader
 import uuid 
 from flask_jwt_extended import create_access_token
+import json
 
 def createUser(name:str, email:str, password:str):
     new_user = User(name=name, email=email, password=password )
@@ -16,7 +17,7 @@ def createUser(name:str, email:str, password:str):
 
 def getUserById(userId : int):
     user = db.session.get(User, userId)
-    return user.to_dict()    
+    return user.to_dict()  
 
 def getUserByEmail(email:str):
     user = db.session.execute(
@@ -46,6 +47,7 @@ def checkUser(id:int = -1, email:str = "", password:str = ""):
         if(check_password_hash(user.get_password(), password)):
             return user.to_dict()
     return None
+
 
 def getUserIDByEmail(email): 
     user_id = db.session.query(User.id).filter(email == User.email).first() 
@@ -133,37 +135,25 @@ def resetPassword(id, old_password, new_password):
 
 def uploadAvatar(id, file='', url=''):
     try:
+        user = User.query.get(id)
         if(file):
-            user = User.query.get(id)
             if(user.avatar_url):
                 cloudinary.uploader.destroy(user.avatar_url)
             upload_resutl = cloudinary.uploader.upload(file)
-            user.avatar_url = upload_resutl['public_id']
-            db.session.commit()
-            user_data = user.to_dict()
-            user_data['avatar_url'] = upload_resutl['secure_url']
-            return {
-                "success": True,
-                    "message": "Your avatar has been updated successfully.",
-                    "data": {
-                        "user": user_data
-                    }
-            }
         if(url):
-            user = User.query.get(id)
             if(user.avatar_url):
                 cloudinary.uploader.destroy(user.avatar_url)
             upload_resutl = cloudinary.uploader.upload(url)
-            user.avatar_url = upload_resutl['public_id']
-            db.session.commit()
-            user_data = user.to_dict()
-            user_data['avatar_url'] = upload_resutl['secure_url']
-            return {
-                "success": True,
-                    "message": "Your avatar has been updated successfully.",
-                    "data": {
-                        "user": user_data
-                    }
+        user.avatar_url = upload_resutl['public_id']
+        db.session.commit()
+        user_data = user.to_dict()
+        user_data['avatar_url'] = upload_resutl['secure_url']
+        return {
+            "success": True,
+                "message": "Your avatar has been updated successfully.",
+                "data": {
+                    "user": user_data
+                }
             }
     except Exception as e:
         return {

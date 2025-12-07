@@ -109,6 +109,21 @@ team_member_association = db.Table('team_members',
 )
 ```
 
+### 3.4. Caching và cache invalidation
+-   Format key khi caching: `{resource}:{id}:{attribute}:{filter}` 
+-   Ví dụ:
+``` python
+user:123                          // User entity
+user:123:posts                    // User's posts
+user:123:posts:published          // User's published posts only
+user:123:profile                  // User profile
+post:456                          // Post entity
+post:456:comments                 // Post's comments
+post:456:comments:approved        // Approved comments only
+category:789:products             // Products in category
+category:789:products:featured    // Featured products in category
+```
+
 ------------------------------------------------------------------------
 
 ## 4. Xác thực đăng nhập

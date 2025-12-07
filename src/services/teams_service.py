@@ -14,6 +14,7 @@ from ..utils import getImageUrl
 import cloudinary.uploader 
 
 
+
 # Viet lai team service 
 # Ham kiem tra the loai member 
 def isMember(user_id, team_id):
@@ -128,7 +129,7 @@ def uploadTeamImage(team , file = '' , type = 'icon'):
             upload_result = cloudinary.uploader.upload(file) 
             team.banner_url = upload_result['public_id']
             return upload_result['secure_url']
-#Lay thong tin cua team theo id 
+#Lay thong tin cua team theo id
 def getTeamByID(id): 
     Leader = aliased(User) 
     ViceLeader = aliased(User) 
@@ -176,6 +177,7 @@ def getTeamByID(id):
         "members": users 
     } , 200 
     
+
     return response_data 
       
 # [POST] 
@@ -288,6 +290,7 @@ def update_team(userID, id, data):  # id = teamID
     # --- Commit database ---
     db.session.commit()
 
+
     return {
         "success": True,
         "message": "Your team has been updated successfully",
@@ -316,6 +319,8 @@ def delete_team(id):
     db.session.delete(inviteCode) 
     db.session.delete(team) 
     db.session.commit() 
+    
+
     return {
         "success": True, 
         "message": "Your team has been deleted successfully"
@@ -390,4 +395,21 @@ def deleteUserFromGroup(userID , teamID):
     db.session.execute(stmt) # Thuc hien cau lenh 1 
     db.session.execute(stmp) # Thuc hien cau lenh 2 
     db.session.commit() 
+
     return True 
+
+def getParticipatedTeams(user_id: int):
+    teams = db.session.query(Team.id , Team.name , Team.banner_url , Team.icon_url , Team.description , Team.leader_id , Team.vice_leader_id).join(team_member_association , team_member_association.c.team_id == Team.id).filter(user_id == team_member_association.c.user_id).all() 
+    teams = [
+        {
+            "id": teamID, 
+            "name": name, 
+            "banner": getImageUrl(banner), 
+            "icon": getImageUrl(icon), 
+            "leader_id": leader, 
+            "vice_leader_id": vice_leader, 
+            "description": description 
+        } 
+        for teamID, name, banner , icon, description , leader , vice_leader  in teams 
+    ] 
+    return teams
