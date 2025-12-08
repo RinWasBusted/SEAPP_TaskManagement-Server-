@@ -5,7 +5,7 @@ from .parsers import register_parser, login_parser, verify_parser, reset_passwor
 from werkzeug.security import generate_password_hash
 from ..services.users_service import createUser, checkEmail , getUserByEmail, checkUser, uploadAvatar, setNewPassword, getUserInfoFromCode, getUserIDByEmail
 from ..services.jwt_service import decode_verification_token, decode_reset_password_token
-from flask_jwt_extended import create_access_token, decode_token, jwt_required, get_jwt
+from flask_jwt_extended import create_access_token, decode_token, jwt_required, get_jwt, get_jwt_identity
 from ..services.verify_service import verfyGoogleToken
 import os
 from dotenv import load_dotenv 
@@ -14,7 +14,7 @@ from datetime import timedelta
 from flask_mail import Message
 from ..config.mail import mail
 import uuid
-from ..extensions import jwt_blacklist
+from ..extensions import jwt_blacklist, logger
 
 
 load_dotenv()
@@ -28,6 +28,7 @@ class Register(Resource):
         email = register_args['email']
 
         if(getUserByEmail(email)):
+            logger.warning(f"Registration failed. The email {email} provided is already in use.")
             return {
                 "success": False,
                 "message": "Registration failed. The email provided is already in use.",
@@ -50,29 +51,37 @@ class Register(Resource):
         # verify_url = url_for('auth.verify', _external=True, token = verification_token )
 
         verify_url = f'http://localhost:5173/verify?token={verification_token}'  # Duong link dung de verify email 
-
-        msg = Message('NoTask email verification', recipients=[email])
-        msg.html = f"""<div class="header">
-            <h1>Welcome to NoTask!</h1>
-        </div>
-        <div class="content">
-            <p>Hi {name},</p>
-            <p>Thank you for registering with NoTask, your ultimate task management solution. To complete your registration and start managing your tasks efficiently, please verify your email address by clicking the button below:</p>
-            <div class="button-container">
-                <a href="{verify_url}" class="button">Verify My Email</a>
+        try:
+            msg = Message('NoTask email verification', recipients=[email])
+            msg.html = f"""<div class="header">
+                <h1>Welcome to NoTask!</h1>
             </div>
-            <p>This link will expire in 24 hours. If you did not sign up for NoTask, please ignore this email.</p>
-            <p>Best regards,</p>
-            <p>The NoTask Team</p>
-        </div>
-        <div class="footer">
-            <p>&copy; 2025 NoTask. All rights reserved.</p>
-            <p>NoTask - Your simple solution for task management.</p>
-            <p><a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
-        </div>"""
-        mail.send(msg)
+            <div class="content">
+                <p>Hi {name},</p>
+                <p>Thank you for registering with NoTask, your ultimate task management solution. To complete your registration and start managing your tasks efficiently, please verify your email address by clicking the button below:</p>
+                <div class="button-container">
+                    <a href="{verify_url}" class="button">Verify My Email</a>
+                </div>
+                <p>This link will expire in 24 hours. If you did not sign up for NoTask, please ignore this email.</p>
+                <p>Best regards,</p>
+                <p>The NoTask Team</p>
+            </div>
+            <div class="footer">
+                <p>&copy; 2025 NoTask. All rights reserved.</p>
+                <p>NoTask - Your simple solution for task management.</p>
+                <p><a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
+            </div>"""
+            mail.send(msg)
+        except Exception as e:
+            logger.error("Failed to send verify mail.")
+            return {
+                "success": False,
+                "message": "Failed to send verify mail."
+            }
 
+        logger.info(f"Verification email sent to {email}.")
         return {
+            "success": True,
             "message": "Verification email sent. Please check your inbox.", 
             "token": verification_token
             }, 200
@@ -89,6 +98,7 @@ class Verify(Resource):
         password = user_data['password_hash']
 
         if(getUserByEmail(email)):
+            logger.warning(f"Email {email} has been registered")
             return {
                 "success": False, 
                 "message": "Email has been registered", 
@@ -100,15 +110,13 @@ class Verify(Resource):
             access_token = create_access_token(identity=str(new_user['id']))
             if isinstance(access_token, bytes):
                 access_token = access_token.decode("utf-8") 
-            # return redirect(
-            #     f"https://{os.getenv('WEB_URL')}?token={access_token}&verified=true", 
-            #     code=302
-            # )
+            logger.info(f"User (id:{new_user['id']}) has been registed.")
             return {
                 "success": True, 
-                "message": "User has registered"
+                "message": "User has been registered"
             }
         else:
+            logger.warning("Failed to verify email.")
             return redirect(
                 f"https://{os.getenv('WEB_URL')}?token={access_token}&verified=false", 
                 code=302
@@ -122,11 +130,11 @@ class Login(Resource):
         email = login_args.get('email')
         password = login_args.get('password')
         user = checkUser(email = email, password = password)
-        print(user) 
         if(user):
             access_token = create_access_token(identity=str(user['id']), additional_claims={'login_method': 'account', 'jti': uuid.uuid4().hex})
             if isinstance(access_token, bytes):
                 access_token = access_token.decode("utf-8")   #Chuyen doi ve lai thanh kieu du lieu str de JSON Serialize 
+            logger.info(f"User (id:{user['id']}) login successfully.")
             return {
                 "success": True,
                 "message" : "Login successful.",
@@ -140,6 +148,7 @@ class Login(Resource):
                 }
             }, 200
         
+        logger.warning(f"Email:{email} Password:{password} are invalid credentials")
         return {
             "success": False,
             "message": "Invalid credentials provided.",
@@ -154,7 +163,7 @@ class LoginGoogle(Resource):
             redirect_uri = url_for('auth.authorizegoogle', _external=True)
             return google.authorize_redirect(redirect_uri, state)
         except Exception as e:
-            current_app.logger.error(f"Error during login:{str(e)}")
+            logger.error(f"Error during login:{str(e)}")
             return {
                 "success": False,
                 "message": "Unable to initiate Google login."
@@ -163,26 +172,35 @@ class LoginGoogle(Resource):
         # Ham nay dung de thuc hien verify token tu google 
         args = login_google_parser.parse_args()
         verfication_code = args.get('code') 
-        print('Ma code la: ' , verfication_code)
         if not verfication_code: 
+            logger.warning("Google login code is invalid.")
             return {
                 "success": False, 
                 "message": "Code is invalid"
             } , 400 
-        verify_result = getUserInfoFromCode(verfication_code) # Verification from google code 
-        if not verify_result: 
-            print('Ma khong hop le ') 
+        try:
+            verify_result = getUserInfoFromCode(verfication_code) # Verification from google code 
+            if not verify_result: 
+                print('Ma khong hop le ') 
+                return {
+                    "success": False, 
+                    "message": "Code is invalid"
+                } , 400 
+        except Exception as e:
+            logger.error("getUserInfoFromCode got error: " + e)
             return {
-                "success": False, 
-                "message": "Code is invalid"
-            } , 400 
+                "success": False,
+                "message": "Failed to login with google account."
+            }
+            
         email = verify_result.get('email') 
         name  = verify_result.get('name') 
         chk = checkEmail(email) 
-        id = 1 
+        id = None
         if not chk: 
             password = generate_password_hash(str(uuid.uuid4())) 
             new_user = createUser(name , email , password)    # Thuc hien tao user neu nhu nguoi dung lan dau dang nhap 
+            logger.info(f"User (id: {new_user.get('id')} has been registered using google account.")
             id = new_user.get('id') 
         else: id = getUserIDByEmail(email)
         
@@ -190,13 +208,13 @@ class LoginGoogle(Resource):
         access_token = create_access_token(identity=str(id), additional_claims={'login_method': 'google', 'jti': uuid.uuid4().hex})
         if isinstance(access_token, bytes):
             access_token = access_token.decode("utf-8") 
-        print(access_token) 
         if not access_token: 
-            print('Khoi tao that bai')
+            logger.warning("Failed to create login code.")
             return {
                 "success": False, 
-                "message": "create login code failed" 
+                "message": "Failed to create login code." 
             } , 400 
+        logger.info(f"User (id: {id}) has been logged in using google account.")
         return {
             "success": True, 
             "token": access_token,
@@ -297,6 +315,7 @@ class ForgotPassword(Resource):
         email = args['email']
         user = getUserByEmail(email) 
         if(user == None):
+            logger.warning(f"Forgot password: The email {email} was not found.")
             return {
                 "success": False,
                 "message": "Email not found.",
@@ -312,43 +331,51 @@ class ForgotPassword(Resource):
         reset_password_token = create_access_token(identity=str(user_id), additional_claims=custom_claims, expires_delta=timedelta(minutes=30))
         reset_password_page_url = f"http://localhost:5173/reset-password?reset_password_token={reset_password_token}"
 
-        msg = Message('Reset Your NoTask Password', recipients=[email])
-        msg.html = f"""<h1>NoTask</h1>
-    
-            <h2>Action Required: Reset Your NoTask Password</h2>
-            
-            <p>Hi {name},</p>
+        try:
+            msg = Message('Reset Your NoTask Password', recipients=[email])
+            msg.html = f"""<h1>NoTask</h1>
+        
+                <h2>Action Required: Reset Your NoTask Password</h2>
+                
+                <p>Hi {name},</p>
 
-            <p>We received a request to <b>reset the password</b> for your NoTask account associated with this email address.</p>
+                <p>We received a request to <b>reset the password</b> for your NoTask account associated with this email address.</p>
 
-            <p>If you made this request, please click the link below to set a new password.</p>
+                <p>If you made this request, please click the link below to set a new password.</p>
 
-            <h3>Reset Your Password Now</h3>
+                <h3>Reset Your Password Now</h3>
 
-            <p>
-                <a href="{reset_password_page_url}">[ Reset Password ]</a>
-            </p>
+                <p>
+                    <a href="{reset_password_page_url}">[ Reset Password ]</a>
+                </p>
 
-            <p>
-                This link will expire in 30 minutes to ensure the security of your account. If the link expires, you will need to submit a new password reset request.
-            </p>
+                <p>
+                    This link will expire in 30 minutes to ensure the security of your account. If the link expires, you will need to submit a new password reset request.
+                </p>
 
-            <hr>
+                <hr>
 
-            <h3>Did Not Request This?</h3>
-            <p>
-                If you <b>did not request</b> a password reset, please <b>ignore this email</b>. Your password will remain unchanged.
-                For security reasons, do not forward this email to anyone.
-            </p>
-            
-            <p>If you have any questions or concerns about your account security, please contact our support team immediately.</p>
+                <h3>Did Not Request This?</h3>
+                <p>
+                    If you <b>did not request</b> a password reset, please <b>ignore this email</b>. Your password will remain unchanged.
+                    For security reasons, do not forward this email to anyone.
+                </p>
+                
+                <p>If you have any questions or concerns about your account security, please contact our support team immediately.</p>
 
-            <p>Thank you,</p>
-            <p>The NoTask Team</p>
+                <p>Thank you,</p>
+                <p>The NoTask Team</p>
 
-            <p><small>*Note: This is an automated email. Please do not reply to this address.</small></p>"""
-        mail.send(msg)
+                <p><small>*Note: This is an automated email. Please do not reply to this address.</small></p>"""
+            mail.send(msg)
+        except Exception as e:
+            logger.warning("Failed to send reset password mail.")
+            return {
+                "success": False,
+                "message": "Failed to send reset password mail."
+            }
 
+        logger.info(f"Reset password has been sent to {email}.")
         return {
             "message": "Reset password email sent. Please check your inbox.", 
             "reset_password_token": reset_password_token
@@ -372,7 +399,8 @@ class SetNewPassword(Resource):
             if(result):
                 return result
             
-        except Exception:
+        except Exception as e:
+            logger.warning(f"Invalid or malformed token to set new password using reset_password_token from User(id:{email}).")
             return {"success": False, "message": "Invalid or malformed token."}, 401
 
 
@@ -386,13 +414,15 @@ class Logout(Resource):
 
         claims = get_jwt()
         jti = claims['jti']
+        id = get_jwt_identity()
 
         if(jwt_blacklist.set(jti, 'true', ex=timedelta(days=7))):
+            logger.info(f"User(id:{id}) has logged out.")
             return {
                 "success": True,
                 "message": "User session is deleted"
             }
-        
+        logger.warning(f"User(id:{id}) has failed to logout.")
         return {
             "success": False,
             "message": "Failed to logout"
