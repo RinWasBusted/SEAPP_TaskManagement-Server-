@@ -1,8 +1,12 @@
+import requests
+import os 
 from ..models import db
 from ..models.user_model import User
 from werkzeug.security import check_password_hash, generate_password_hash
+from .jwt_service import decode_google_token
 import cloudinary.uploader
-
+import uuid 
+from flask_jwt_extended import create_access_token
 
 def createUser(name:str, email:str, password:str):
     new_user = User(name=name, email=email, password=password )
@@ -43,24 +47,29 @@ def checkUser(id:int = -1, email:str = "", password:str = ""):
             return user.to_dict()
     return None
 
+def getUserIDByEmail(email): 
+    user_id = db.session.query(User.id).filter(email == User.email).first() 
+    return str(user_id[0])  
 
-def updateUserById(id, name, email, password, avatar_url):
+def checkEmail(email):
+    chk = db.session.query(1).filter(email == User.email).first() 
+    if chk: return True 
+    return False 
+
+def updateUserById(id, name = None, email = None):
     user = User.query.get(id)
 
-    if( user is None): return None
-
-    user.name = name
-    user.email = email
-    user.password = password
-    user.avatar_url = avatar_url
+    if(user is None): return None
+    if name is not None: 
+        user.name = name
+    if email is not None: 
+        user.email = email  # Chi thuc hien update name va email 
 
     db.session.commit() 
-    
     return {
         "id": id,
-        "name": name,
-        "password": password,
-        "avatar_url": avatar_url
+        "name": name if name is not None else None,
+        "email": email if email is not None else None, 
     }
 
 def changeEmail(id, new_email, password):
@@ -104,8 +113,8 @@ def changeName(id, new_name):
         "message": "User not found."
     }
 
-def resetPassword(id, old_password, new_password):
-    if(checkUser(id=id, password=old_password)):
+def resetPassword(id, old_password, new_password , login_method = 'account'):
+    if(checkUser(id=id, password=old_password) or login_method == 'google'):
         user = User.query.get(id)
         user.password = generate_password_hash(new_password)
         db.session.commit()
@@ -163,7 +172,51 @@ def uploadAvatar(id, file='', url=''):
         "error": f"{e}"
     }
 
+def setNewPassword(id:int, new_password:str):
+    user = User.query.get(id)
+    if(user == None): 
+        return None
+    user.password = generate_password_hash(new_password)
+    db.session.commit()
+    return {
+            "success": True,
+            "message": "Your password has been updated successfully.",
+            "data": {
+                "user": user.to_dict()
+            }            
+        }
 
+def getTokenFromCode(code): 
+    url = 'https://oauth2.googleapis.com/token' 
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded'
+    } 
+    data = {
+        "code": code, 
+        "client_id": os.environ.get('OAUTH_CLIENT_CLIENT_ID_2'), 
+        "client_secret": os.environ.get('OAUTH_CLIENT_SECRET_2'), 
+        'redirect_uri': 'http://localhost:5173', 
+        'grant_type': 'authorization_code' 
+    }
+    r = requests.post(url , data=data , headers=headers) 
+    if r: 
+        return dict(r.json()).get('id_token') 
+    return None 
+def getUserInfoFromCode(code): 
+    response_token_data = getTokenFromCode(code) 
+    if not response_token_data: 
+        return None 
+    user_data = decode_google_token(response_token_data) 
+    print(user_data) 
+    if user_data:   #user_data duoc decode thanh cong  
+        return user_data 
+    return None  #user_data decode that bai 
 
-
-        
+def createSession(email , password): 
+    user = checkUser(email = email, password = password)
+    if user: 
+        access_token = create_access_token(identity=str(user['id']), additional_claims={'jti': uuid.uuid4().hex})
+        if isinstance(access_token, bytes):
+            access_token = access_token.decode("utf-8")   #Chuyen doi ve lai thanh kieu du lieu str de JSON Serialize 
+        return access_token 
+    return None 

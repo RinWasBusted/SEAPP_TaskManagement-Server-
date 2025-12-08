@@ -1,2 +1,10 @@
 /env
 .env
+.idea/
+# 1. Bỏ qua tất cả thư mục __pycache__ dù nằm ở bất kỳ cấp độ nào
+**/__pycache__/
+# 2. Bỏ qua các tệp .pyc nằm rải rác bên ngoài thư mục __pycache__
+*.pyc
+
+# 3. Bỏ qua các tệp .pyo (optimized bytecode, ít dùng hơn nhưng vẫn nên thêm)
+*.pyo

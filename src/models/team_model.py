@@ -1,5 +1,5 @@
 from . import db
-
+from ..utils import getImageUrl 
 class Team(db.Model):
     __tablename__ = 'teams'
     
@@ -7,7 +7,7 @@ class Team(db.Model):
     id = db.Column('team_id', db.Integer, primary_key=True)
     icon_url = db.Column(db.String(255), nullable=True)
     banner_url = db.Column(db.String(255), nullable=True)
-    name = db.Column('team_name', db.String(100), unique=True, nullable=False)
+    name = db.Column('team_name', db.String(100), unique=False, nullable=False)
     description = db.Column('team_desc', db.String(500), nullable=True)
     
     # Khóa ngoại cho Leader và ViceLeader
@@ -23,3 +23,12 @@ class Team(db.Model):
     # Relationship với leader và vice leader
     leader = db.relationship('User', foreign_keys=[leader_id], backref='led_teams')
     vice_leader = db.relationship('User', foreign_keys=[vice_leader_id], backref='vice_led_teams')
+    
+    def to_dict(self): 
+        return {
+            "teamID": self.id, 
+            "iconUrl": getImageUrl(self.icon_url), #Phai truy vao de lay du lieu 
+            "teamName": self.name, 
+            "teamDescription": self.description, 
+            "banner": getImageUrl(self.banner_url) 
+        }

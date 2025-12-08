@@ -1,0 +1,45 @@
+name = user_data.get('name')
+email = user_data.get('email')
+password = user_data.get('password_hash')
+if password is None:
+password = str(uuid.uuid4()) # Neu nhu khong co password thi dat lai
+#Da ton tai nguoi dung => Chuyen huong, khong lam gi
+if(getUserByEmail(email)):
+return ( #//redirect
+# f"https://{os.getenv('WEB_URL')}?verified=false",
+# code=302
+{
+"sucess": True,
+"message": "Email has been registerd",
+"email": email # Tien hanh tao tokenj o day luon ?
+} , 200
+)
+# Neu chua co nguoi dung thi tien hanh tao nguoi dung moi
+new_user = createUser(name, email, password)
+
+if(new_user):
+
+
+# return redirect(
+# # f"https://{os.getenv('WEB_URL')}?token={access_token}&verified=true",
+# # code=302
+# {
+# "success": True,
+# "message": "Khoi tao nguoi dung thanh cong",
+
+# }
+# )
+
+return {
+"success": True,
+"message": "Khoi tao nguoi dung thanh cong",
+"token_type": "Bearer",
+"expires_in": 60*60*24*7,
+"email": email
+
+} , 200
+else:
+return redirect(
+f"https://{os.getenv('WEB_URL')}?token={access_token}&verified=false",
+code=302
+)
