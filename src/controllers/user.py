@@ -14,15 +14,15 @@ class User(Resource):
     @jwt_required()
     def get(self):
         userId = int(get_jwt_identity())
-        print(userId) 
         if(userId):
             user = getUserById(userId)
-            return {
-                "success": True,
-                "data": {
-                    "user": user
+            if(user):
+                return {
+                    "success": True,
+                    "data": {
+                        "user": user
+                    }
                 }
-            }
         
         return {
             "success": False,
@@ -62,7 +62,6 @@ class ChangeEmail(Resource):
         password = args['password']
         
         result = changeEmail(id = id, new_email=new_email, password=password)
-        
         return result
 
 class ChangeName(Resource):
@@ -74,7 +73,6 @@ class ChangeName(Resource):
         new_name = args['new_name']
 
         result = changeName(id=id, new_name=new_name)
-        
         return result
 
 class ResetPassword(Resource):
@@ -88,7 +86,6 @@ class ResetPassword(Resource):
         new_password = args['new_password']
 
         result = resetPassword(id=id, old_password=old_password, new_password=new_password , login_method=login_method)
-
         return result
 
 class UploadAvatar(Resource):

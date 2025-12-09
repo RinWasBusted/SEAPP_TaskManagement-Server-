@@ -7,6 +7,7 @@ from .jwt_service import decode_google_token
 import cloudinary.uploader
 import uuid 
 from flask_jwt_extended import create_access_token
+from src.extensions import logger
 
 def createUser(name:str, email:str, password:str):
     new_user = User(name=name, email=email, password=password )
@@ -73,15 +74,18 @@ def updateUserById(id, name = None, email = None):
     }
 
 def changeEmail(id, new_email, password):
-    if(getUserByEmail(new_email)): return {
+    if(getUserByEmail(new_email)): 
+        logger.warning(f"User(id:{id}) has changed the email with an existed email.")
+        return {
         "success": False,
         "message": "New email are already exists."
-    }
+        }
 
     if(checkUser(id = id, password=password)):
         user = User.query.get(id)
         user.email = new_email
         db.session.commit()
+        logger.info(f"User(id:{id}) has changed the email.")
         return {
             "success": True,
             "message": "Your email address has been successfully changed.",
@@ -90,6 +94,7 @@ def changeEmail(id, new_email, password):
             }            
         }
     
+    logger.warning(f"User(id:{id}) has changed the email with a wrong password.")
     return {
         "success": False,
         "message": "Wrong password."
@@ -100,6 +105,7 @@ def changeName(id, new_name):
     if(user):
         user.name = new_name
         db.session.commit()
+        logger.info(f"User(id:{id}) has changed the username")
         return {
             "success": True,
             "message": "Your name has been successfully changed.",
@@ -108,6 +114,7 @@ def changeName(id, new_name):
             }            
         }
     
+    logger.warning(f"User(id:{id}) was not an invalid user.")
     return {
         "success": False,
         "message": "User not found."
@@ -118,6 +125,7 @@ def resetPassword(id, old_password, new_password , login_method = 'account'):
         user = User.query.get(id)
         user.password = generate_password_hash(new_password)
         db.session.commit()
+        logger.info(f"User(id:{id}) has updated the password.")
         return {
             "success": True,
             "message": "Your password has been updated successfully.",
@@ -126,6 +134,7 @@ def resetPassword(id, old_password, new_password , login_method = 'account'):
             }            
         }
     
+    logger.warning(f"User(id:{id}) tried to update the password using a wrong password.")
     return {
         "success": False,
         "message": "Wrong password."
@@ -142,6 +151,7 @@ def uploadAvatar(id, file='', url=''):
             db.session.commit()
             user_data = user.to_dict()
             user_data['avatar_url'] = upload_resutl['secure_url']
+            logger.info(f"User(id:{id}) has updated user's avatar.")
             return {
                 "success": True,
                     "message": "Your avatar has been updated successfully.",
@@ -158,6 +168,7 @@ def uploadAvatar(id, file='', url=''):
             db.session.commit()
             user_data = user.to_dict()
             user_data['avatar_url'] = upload_resutl['secure_url']
+            logger.info(f"User(id:{id}) has updated user's avatar.")
             return {
                 "success": True,
                     "message": "Your avatar has been updated successfully.",
@@ -166,6 +177,7 @@ def uploadAvatar(id, file='', url=''):
                     }
             }
     except Exception as e:
+        logger.warning(f"User(id:{id}) was failed to upload user's avatar.")
         return {
         "success": False,
         "message": "Failed to upload your avatar.",
