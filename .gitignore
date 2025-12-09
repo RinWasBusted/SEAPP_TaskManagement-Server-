@@ -8,3 +8,6 @@
 
 # 3. Bỏ qua các tệp .pyo (optimized bytecode, ít dùng hơn nhưng vẫn nên thêm)
 *.pyo
+
+logs/*
+!logs/.gitkeep

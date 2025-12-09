@@ -10,8 +10,7 @@ from datetime import timedelta
 from flask_jwt_extended import JWTManager
 from authlib.integrations.flask_client import OAuth
 from flask_mail import Mail, Message
-from .extensions import jwt_blacklist
-
+from .extensions import jwt_blacklist, logger
 
 def create_app(config_object=DevConfig):
     # Tải biến môi trường ngay khi hàm được gọi
