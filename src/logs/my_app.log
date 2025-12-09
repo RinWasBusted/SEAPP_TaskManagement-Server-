@@ -27,3 +27,9 @@
 [INFO|_internal|L97] 2025-12-09T15:27:20+0700:  * Restarting with stat
 [WARNING|_internal|L97] 2025-12-09T15:27:20+0700:  * Debugger is active!
 [INFO|_internal|L97] 2025-12-09T15:27:20+0700:  * Debugger PIN: 974-441-754
+[INFO|_internal|L97] 2025-12-09T15:36:48+0700: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:6869
+[INFO|_internal|L97] 2025-12-09T15:36:48+0700: [33mPress CTRL+C to quit[0m
+[INFO|_internal|L97] 2025-12-09T15:36:48+0700:  * Restarting with stat
+[WARNING|_internal|L97] 2025-12-09T15:36:49+0700:  * Debugger is active!
+[INFO|_internal|L97] 2025-12-09T15:36:49+0700:  * Debugger PIN: 974-441-754
