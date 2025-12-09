@@ -15,3 +15,15 @@
 [INFO|_internal|L97] 2025-12-09T13:25:14+0700: 127.0.0.1 - - [09/Dec/2025 13:25:14] "POST /auth/logout HTTP/1.1" 200 -
 [INFO|_internal|L97] 2025-12-09T13:25:22+0700: 127.0.0.1 - - [09/Dec/2025 13:25:22] "[32mGET /user HTTP/1.1[0m" 308 -
 [INFO|_internal|L97] 2025-12-09T13:25:22+0700: 127.0.0.1 - - [09/Dec/2025 13:25:22] "[31m[1mGET /user/ HTTP/1.1[0m" 401 -
+[INFO|_internal|L97] 2025-12-09T15:11:25+0700: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:6869
+[INFO|_internal|L97] 2025-12-09T15:11:25+0700: [33mPress CTRL+C to quit[0m
+[INFO|_internal|L97] 2025-12-09T15:11:25+0700:  * Restarting with stat
+[WARNING|_internal|L97] 2025-12-09T15:11:26+0700:  * Debugger is active!
+[INFO|_internal|L97] 2025-12-09T15:11:26+0700:  * Debugger PIN: 974-441-754
+[INFO|_internal|L97] 2025-12-09T15:27:20+0700: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:6869
+[INFO|_internal|L97] 2025-12-09T15:27:20+0700: [33mPress CTRL+C to quit[0m
+[INFO|_internal|L97] 2025-12-09T15:27:20+0700:  * Restarting with stat
+[WARNING|_internal|L97] 2025-12-09T15:27:20+0700:  * Debugger is active!
+[INFO|_internal|L97] 2025-12-09T15:27:20+0700:  * Debugger PIN: 974-441-754
